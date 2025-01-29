@@ -92,7 +92,8 @@ for i, (node, iface) in enumerate(nodes):
     if i >= 2:
         switch = switches[1]
     sw_iface = switch.addInterface()
-    link = request.L1Link(f"link_node{i}_switch{0 if i < 2 else 1}")
+    link_name = f"link_node{i}_switch{0 if i < 2 else 1}"
+    link = request.L1Link(link_name)
     link.addInterface(iface)
     link.addInterface(sw_iface)
 
