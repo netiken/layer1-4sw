@@ -81,7 +81,8 @@ for i in range(params.nr_nodes):
 # Create switches and assign types.
 switches = []
 for i, swtype in enumerate([params.phystype0, params.phystype1]):
-    switch = request.Switch(f"mysw{i}")
+    switch_name = "switch" + str(i)
+    switch = request.Switch(switch_name)
     switch.hardware_type = swtype
     switches.append(switch)
 
