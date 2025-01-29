@@ -1,5 +1,5 @@
-"""This profile uses 4 switches and 8 hosts. 
-2 switches will have 4 hosts each and each switch will have 2 links to the other switch."""
+"""This profile uses 2 switches and 4 hosts. 
+2 switches will have 2 hosts each and 2 links to connect the switches."""
 
 # Import the Portal object.
 import geni.portal as portal
@@ -21,7 +21,7 @@ pc = portal.Context()
 request = pc.makeRequestRSpec()
 
 # Read parameters.
-pc.defineParameter("nr_nodes", "Number of nodes", portal.ParameterType.INTEGER, 8)
+pc.defineParameter("nr_nodes", "Number of nodes", portal.ParameterType.INTEGER, 4)
 pc.defineParameter(
     "phystype0",
     "Switch 0 type",
@@ -33,22 +33,6 @@ pc.defineParameter(
 pc.defineParameter(
     "phystype1",
     "Switch 1 type",
-    portal.ParameterType.STRING,
-    "dell-s4048",
-    [("mlnx-sn2410", "Mellanox SN2410"), ("dell-s4048", "Dell S4048")],
-)
-
-pc.defineParameter(
-    "phystype2",
-    "Switch 2 type",
-    portal.ParameterType.STRING,
-    "dell-s4048",
-    [("mlnx-sn2410", "Mellanox SN2410"), ("dell-s4048", "Dell S4048")],
-)
-
-pc.defineParameter(
-    "phystype3",
-    "Switch 3 type",
     portal.ParameterType.STRING,
     "dell-s4048",
     [("mlnx-sn2410", "Mellanox SN2410"), ("dell-s4048", "Dell S4048")],
@@ -77,7 +61,7 @@ for i in range(params.nr_nodes):
     if i == 0:
         # The first node is the manager.
         worker_ips = " ".join(
-            [GLOBALS.base_ip + str(j) for j in range(1, params.nr_nodes)]
+            [GLOBALS.base_ip + str(j) for j in range(0, params.nr_nodes)]
         )
         command = "/local/repository/setup-manager.sh {} {}".format(
             params.branch, worker_ips
@@ -85,7 +69,7 @@ for i in range(params.nr_nodes):
     else:
         # All the rest are workers.
         command = "/local/repository/setup-worker.sh {} {} {} {}".format(
-            params.branch, i - 1, ip_address, GLOBALS.base_ip + "0"
+            params.branch, i, ip_address, GLOBALS.base_ip + "0"
         )
     node.addService(
         pg.Execute(
@@ -95,44 +79,31 @@ for i in range(params.nr_nodes):
 
 # Create switches and assign types.
 switches = []
-for i, swtype in enumerate(
-    [params.phystype0, params.phystype1, params.phystype2, params.phystype3], start=1
-):
+for i, swtype in enumerate([params.phystype0, params.phystype1]):
     switch = request.Switch(f"mysw{i}")
     switch.hardware_type = swtype
     switches.append(switch)
 
-# Link hosts to switches: 4 hosts to switch 2 and 4 hosts to switch 4.
+# Link hosts to switches: 2 hosts to switch 2 and 4 hosts to switch 4.
 for i, (node, iface) in enumerate(nodes):
-    switch = switches[1]
-    if i >= 4:
-        switch = switches[3]
+    switch = switches[0]
+    if i >= 2:
+        switch = switches[1]
     sw_iface = switch.addInterface()
-    link = request.L1Link(f"link_node{i}_switch{1 if i < 4 else 3}")
+    link = request.L1Link(f"link_node{i}_switch{0 if i < 2 else 1}")
     link.addInterface(iface)
     link.addInterface(sw_iface)
 
 # Create trunk links between switches.
-trunk_links = [
-    (0, 1),
-    (1, 2),
-    (2, 3),
-    (3, 0),
-]
+trunk_links = [(0, 1)]
 
 # Two links per trunk.
-for i, (sw0_idx, sw1_idx) in enumerate(trunk_links):
-    sw0_iface0 = switches[sw0_idx].addInterface()
-    sw1_iface0 = switches[sw1_idx].addInterface()
-    trunk0 = request.L1Link(f"trunk{i}_0")
-    trunk0.addInterface(sw0_iface0)
-    trunk0.addInterface(sw1_iface0)
-
-    sw0_iface1 = switches[sw0_idx].addInterface()
-    sw1_iface1 = switches[sw1_idx].addInterface()
-    trunk1 = request.L1Link(f"trunk{i}_1")
-    trunk1.addInterface(sw0_iface1)
-    trunk1.addInterface(sw1_iface1)
+for i, (sw1, sw2) in enumerate(trunk_links):
+    sw1_iface = switches[sw1].addInterface()
+    sw2_iface = switches[sw2].addInterface()
+    link = request.L1Link(f"link_sw{sw1}_sw{sw2}")
+    link.addInterface(sw1_iface)
+    link.addInterface(sw2_iface)
 
 # Print the RSpec to the enclosing page.
 pc.printRequestRSpec(request)
