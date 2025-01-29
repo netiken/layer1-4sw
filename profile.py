@@ -106,9 +106,18 @@ trunk_links = [(0, 1)]
 
 # Two links per trunk.
 for i, (sw1, sw2) in enumerate(trunk_links):
+    # First link
     sw1_iface = switches[sw1].addInterface()
     sw2_iface = switches[sw2].addInterface()
-    link_sw = "link_sw" + str(sw1) + "_sw" + str(sw2)
+    link_sw = "link_sw" + str(sw1) + "_sw" + str(sw2) + "_0"
+    link = request.L1Link(link_sw)
+    link.addInterface(sw1_iface)
+    link.addInterface(sw2_iface)
+
+    # Second link
+    sw1_iface = switches[sw1].addInterface()
+    sw2_iface = switches[sw2].addInterface()
+    link_sw = "link_sw" + str(sw1) + "_sw" + str(sw2) + "_1"
     link = request.L1Link(link_sw)
     link.addInterface(sw1_iface)
     link.addInterface(sw2_iface)
