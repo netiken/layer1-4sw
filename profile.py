@@ -47,7 +47,8 @@ params = pc.bindParameters()
 # Create nodes
 nodes = []
 for i in range(params.nr_nodes):
-    node = request.RawPC(f"node{i}")
+    node_name = "node" + str(i)
+    node = request.RawPC(node_name)
     node.hardware_type = "xl170"
     node.disk_image = GLOBALS.image
 
