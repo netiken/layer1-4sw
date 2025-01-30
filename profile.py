@@ -1,4 +1,4 @@
-"""This profile uses 2 switches and 4 hosts. 
+"""This profile uses 2 switches and 4 hosts.
 2 switches will have 2 hosts each and 2 links to connect the switches."""
 
 # Import the Portal object.
@@ -59,19 +59,7 @@ for i in range(params.nr_nodes):
     nodes.append((node, iface))
 
     # Add a startup script.
-    if i == 0:
-        # The first node is the manager.
-        worker_ips = " ".join(
-            [GLOBALS.base_ip + str(j) for j in range(0, params.nr_nodes)]
-        )
-        command = "/local/repository/setup-manager.sh {} {}".format(
-            params.branch, worker_ips
-        )
-    else:
-        # All the rest are workers.
-        command = "/local/repository/setup-worker.sh {} {} {} {}".format(
-            params.branch, i, ip_address, GLOBALS.base_ip + "0"
-        )
+    command = "/local/repository/setup-node.sh"
     node.addService(
         pg.Execute(
             shell="bash", command="sudo -u {} -H {}".format(params.user, command)
